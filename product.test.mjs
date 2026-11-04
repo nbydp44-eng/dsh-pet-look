@@ -91,6 +91,13 @@ check('night-quiet-blocks', inNight ? canSpeak() === false : canSpeak() === true
 applySettings({ speak: { nightQuiet: false } })
 check('night-quiet-off', canSpeak() === true)
 
+// —— 0.3.0：气泡长留、分析预算 ——
+const cfg = api.config
+check('bubble-default-long', cfg.bubble.durationMs === 600000 && cfg.bubble.clearOnSwitch === true, String(cfg.bubble.durationMs))
+check('analysis-budget-default', cfg.vision.maxPerHour === 24 && cfg.vision.maxTokens >= 800)
+const budget = _internals.canAnalyze()
+check('can-analyze-baseline', budget === true)
+
 // —— 重复闸门 ——
 bubbles.length = 0
 check('say-first-ok', (await say('这段代码的循环条件写反了。')) === true, bubbles.join('|'))
