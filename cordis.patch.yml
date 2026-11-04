@@ -1,0 +1,5 @@
+# dsh-pet-look bundle patch: one host row over the Desktop profile.
+# The row name resolves from the profile's own node_modules.
+- insert:
+    - id: dsh-pet-look
+      name: dsh-pet-look

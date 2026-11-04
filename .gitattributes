@@ -1,0 +1,9 @@
+# 统一换行：仓库内一律 LF，检出时不转换为 CRLF
+* text=auto eol=lf
+
+# 二进制文件不做换行转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

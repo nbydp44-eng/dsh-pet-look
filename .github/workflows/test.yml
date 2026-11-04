@@ -1,0 +1,23 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  offline:
+    # 插件只在 Windows 上有截图后端，但离线单元测试是纯 Node，可跨平台跑。
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: 语法检查
+        run: npm run check
+      - name: 离线测试（人设 / 解析 / 设置与记忆）
+        run: npm test

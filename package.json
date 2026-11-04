@@ -1,0 +1,43 @@
+{
+  "name": "dsh-pet-look",
+  "version": "0.2.0",
+  "description": "DSH 桌宠的屏幕感知与主动交流插件：本地隐私门 + 主屏截图 + 视觉理解 + 可控主动发言",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "docs"
+  ],
+  "scripts": {
+    "test": "node persona.test.mjs && node parse.test.mjs && node product.test.mjs",
+    "check": "node --check lib/index.js && node --check lib/vision.js && node --check lib/persona.js",
+    "test:live": "node _probe-look/harness.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "desktop-pet",
+    "screen-awareness",
+    "privacy"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "os": [
+    "win32"
+  ],
+  "license": "MIT"
+}
