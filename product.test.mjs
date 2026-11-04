@@ -106,6 +106,9 @@ check('say-repeat-blocked', (await say('这段代码的循环条件写反了。'
 check('say-reword-blocked', (await say('这段代码的循环条件，写反了')) === false)
 check('say-different-ok', (await say('矩阵的秩那题可以先做行变换。')) === true)
 check('isRepeat-helper', isRepeat('矩阵的秩那题，可以先做行变换！') === true)
+check('say-topic-said', (await say('第三章的秩学得挺扎实，行变换那步没卡住。', true)) === true)
+check('repeat-paraphrase-topic', isRepeat('第三章的秩掌握得不错，思路很清晰。') === true)
+check('repeat-new-topic-ok', isRepeat('这套视频在讲火锅店探店，看着挺香。') === false)
 
 
 // —— 设置读写 ——
@@ -131,6 +134,17 @@ check('memory-reject-card', memory.apply({ key: 'x', text: '银行卡 6222 0212 
 check('memory-list-has-item', memory.list().some((i) => i.key === 'task-1'))
 const cleared = memory.clear()
 check('memory-cleared', cleared.total === 0 && memory.list().length === 0)
+
+// 过期记忆不再注入：否则桌宠会脱离屏幕、反复念叨上周的作业
+const { createMemory } = await import(pathToFileURL(path.join(process.cwd(), 'lib/memory.js')).href)
+const ttlDir = path.join(tmpHome, 'ttl')
+fs.mkdirSync(ttlDir, { recursive: true })
+const stale = Date.now() - 100 * 3600 * 1000
+fs.writeFileSync(path.join(ttlDir, 'memory.json'), JSON.stringify({ version: 1, items: [{ key: 'old', text: '上周在写线性代数第三章的作业', status: 'active', createdAt: stale, updatedAt: stale }] }))
+const ttlMemory = createMemory(ttlDir, { memory: { maxEntries: 10, injectEntries: 10, ttlHours: 72 } })
+check('memory-ttl-filters-old', ttlMemory.activeList().length === 0)
+const fresh = createMemory(ttlDir, { memory: { maxEntries: 10, injectEntries: 10, ttlHours: 0 } })
+check('memory-ttl-zero-keeps-all', fresh.activeList().length === 1)
 
 // —— 设置页路由：HTML + JSON 接口真的注册了 ——
 const get = routes.get('/dsh-pet-look/settings')
