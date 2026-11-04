@@ -22,7 +22,7 @@
     "docs"
   ],
   "scripts": {
-    "test": "node persona.test.mjs && node parse.test.mjs && node product.test.mjs",
+    "test": "node persona.test.mjs && node parse.test.mjs && node product.test.mjs && node decide.test.mjs",
     "check": "node --check lib/index.js && node --check lib/vision.js && node --check lib/persona.js",
     "test:live": "node _probe-look/harness.mjs"
   },
