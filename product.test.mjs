@@ -120,13 +120,13 @@ const applied = applySettings({
 })
 check('settings-applied-list', applied.includes('persona') && applied.includes('speak') && applied.includes('intervals'), applied.join(','))
 const st = settingsState()
-check('settings-state-values', st.persona.preset === 'humor' && st.speak.maxPerHour === 5 && st.speak.minGapSec === 600 && st.intervals.normal === 90)
+check('settings-state-values', st.persona.preset === 'humor' && st.speak.maxPerHour === 3 && st.speak.minGapSec === 900 && st.intervals.normal === 90, JSON.stringify(st.speak))
 check('settings-memory-off', st.memory.enabled === false)
 
 // 越界值要被夹住，而不是原样写进运行时
 applySettings({ speak: { maxPerHour: 99, minGapSec: 1 }, intervals: { normal: 5 } })
 const st2 = settingsState()
-check('settings-clamped', st2.speak.maxPerHour === 6 && st2.speak.minGapSec === 300 && st2.intervals.normal === 30, JSON.stringify({ s: st2.speak, i: st2.intervals.normal }))
+check('settings-clamped', st2.speak.maxPerHour === 3 && st2.speak.minGapSec === 900 && st2.intervals.normal === 30, JSON.stringify({ s: st2.speak, i: st2.intervals.normal }))
 
 // —— 记忆：只收合规内容，可清空 ——
 check('memory-apply-ok', memory.apply({ key: 'task-1', text: '在写线性代数第三章的作业', status: 'active' }) === 'task-1')
@@ -149,10 +149,10 @@ check('memory-ttl-zero-keeps-all', fresh.activeList().length === 1)
 // —— 设置页路由：HTML + JSON 接口真的注册了 ——
 const get = routes.get('/dsh-pet-look/settings')
 check('route-settings-page', typeof get === 'function')
+let pageHtml = ''
 if (get) {
-  let body = ''
-  await get({ method: 'GET' }, { setHeader() {}, end: (x) => { body = String(x) } })
-  check('settings-page-html', body.includes('大肥鱼 · 识屏设置') && body.includes('name="preset"') && !/https?:\/\/(?!127\.0\.0\.1)/.test(body))
+  await get({ method: 'GET' }, { setHeader() {}, end: (x) => { pageHtml = String(x) } })
+  check('settings-page-html', pageHtml.includes('大肥鱼 · 识屏设置') && pageHtml.includes('name="preset"') && !/https?:\/\/(?!127\.0\.0\.1)/.test(pageHtml))
 }
 check('route-settings-state', typeof routes.get('/dsh-pet-look/settings/state') === 'function')
 check('route-memory-delete', typeof routes.get('/dsh-pet-look/memory') === 'function')
@@ -202,6 +202,16 @@ const cfgNow = JSON.parse(statusNow.body)
 check('heartbeat-default', cfgNow.bubble && cfgNow.bubble.durationMs === 600000, 'bubble=10min')
 const withHb = normalizeConfig({ vision: { heartbeatSec: 5 } })
 check('heartbeat-clamped', withHb.vision.heartbeatSec === 120, `hb=${withHb.vision.heartbeatSec}`)
+
+// 发言频率是硬上限：配置只能更克制，不能把「每小时 3 次 / 间隔 15 分钟」改得更吵。
+const loud = normalizeConfig({ speak: { maxPerHour: 50, minGapSec: 30 } }).speak
+check('speak-cap-hard', loud.maxPerHour === 3 && loud.minGapSec === 900, `max=${loud.maxPerHour} gap=${loud.minGapSec}`)
+const calm = normalizeConfig({ speak: { maxPerHour: 2, minGapSec: 1800 } }).speak
+check('speak-cap-keeps-calmer', calm.maxPerHour === 2 && calm.minGapSec === 1800, `max=${calm.maxPerHour} gap=${calm.minGapSec}`)
+
+// 设置页把记忆文本当文本插入，不能拼 HTML（记忆内容来自模型对屏幕的转述）。
+const page = pageHtml
+check('settings-page-no-html-injection', page.includes('row.textContent') && !page.includes('innerHTML = list.length'), 'memList uses textContent')
 
 const failed = results.filter((r) => !r.ok)
 console.log(`\n${results.length - failed.length}/${results.length} passed`)

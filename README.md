@@ -99,8 +99,8 @@ plugin_manager install_bundle  → 选择本地目录 dsh-pet-look
 | `intervals.normal` | `60` | 普通场景间隔（秒） |
 | `intervals.dynamic` | `120` | 视频/游戏等动态场景 |
 | `intervals.battery` | `180` | 电池供电 |
-| `speak.maxPerHour` | `3` | 每小时主动发言上限 |
-| `speak.minGapSec` | `900` | 两次发言最小间隔 |
+| `speak.maxPerHour` | `3` | 每小时主动发言上限（硬上限 3，只能调低） |
+| `speak.minGapSec` | `900` | 两次发言最小间隔（硬下限 900 秒） |
 | `speak.nightQuiet.enabled` | `false` | 夜间（23–7 点）不主动开口 |
 | `privacy.softBlockAt` | `4` | 软性敏感词累计多少个才整屏跳过 |
 | `vision.provider` / `vision.model` | 空 | 留空则自动挑一个支持图片的已配置服务 |
