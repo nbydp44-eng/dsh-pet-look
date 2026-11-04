@@ -44,6 +44,7 @@ const ctx = {
 
 const { apply } = await import(pathToFileURL(path.join(import.meta.dirname, 'lib', 'index.js')).href)
 import { rules } from './lib/persona.js'
+import { normalizeConfig } from './lib/config.js'
 const api = apply(ctx, { enabled: false, debugRoutes: true, dataDir: tmpHome, speak: { maxPerHour: 3, minGapSec: 60 } })
 const { _internals } = api
 
@@ -180,6 +181,13 @@ check('route-persona-post', personaPost.code === 200 && JSON.parse(personaPost.b
 
 const sameOrigin = await hit('POST', { host: '127.0.0.1:2577', origin: 'http://127.0.0.1:2577', 'sec-fetch-site': 'same-origin', 'content-type': 'application/json' })
 check('guard-same-origin-ok', sameOrigin.code === 200, `code=${sameOrigin.code}`)
+
+// 静止画面的定时兜底：默认 10 分钟看一次，且配置里能把它调到合理区间。
+const statusNow = await hit('GET', { host: '127.0.0.1:2577' }, '/dsh-pet-look/status')
+const cfgNow = JSON.parse(statusNow.body)
+check('heartbeat-default', cfgNow.bubble && cfgNow.bubble.durationMs === 600000, 'bubble=10min')
+const withHb = normalizeConfig({ vision: { heartbeatSec: 5 } })
+check('heartbeat-clamped', withHb.vision.heartbeatSec === 120, `hb=${withHb.vision.heartbeatSec}`)
 
 const failed = results.filter((r) => !r.ok)
 console.log(`\n${results.length - failed.length}/${results.length} passed`)

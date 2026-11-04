@@ -106,6 +106,7 @@ plugin_manager install_bundle  → 选择本地目录 dsh-pet-look
 | `vision.provider` / `vision.model` | 空 | 留空则自动挑一个支持图片的已配置服务 |
 | `vision.maxPerHour` | `24` | 每小时最多真正调用几次视觉模型（只防重复分析，不限制发言） |
 | `bubble.durationMs` | `600000` | 气泡停留时长（毫秒）；切换窗口会提前收起 |
+| `vision.heartbeatSec` | `600` | 画面完全没变时，隔多久也再看一眼（静止兜底） |
 | `bubble.clearOnSwitch` | `true` | 切换前台窗口时自动收起气泡 |
 | `memory.maxEntries` | `120` | 记忆条数上限 |
 | `logs.keepDays` | `7` | 日志保留天数 |
