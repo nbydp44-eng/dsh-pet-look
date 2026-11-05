@@ -220,6 +220,31 @@ check('speak-cap-keeps-calmer', calm.maxPerHour === 2 && calm.minGapSec === 1800
 const page = pageHtml
 check('settings-page-no-html-injection', page.includes('row.textContent') && !page.includes('innerHTML = list.length'), 'memList uses textContent')
 
+// 说话同时写进桌宠自己的对话记忆：用户点开对话能接上，且不产生模型调用。
+const { createPet } = await import('./lib/pet.js')
+const petDir = path.join(tmpHome, 'dsh-pet')
+fs.mkdirSync(petDir, { recursive: true })
+const petMem = path.join(petDir, 'memory.json')
+fs.writeFileSync(petMem, JSON.stringify({ main: { main: { messages: [] } } }))
+const oldTime = new Date(Date.now() - 30_000)
+fs.utimesSync(petMem, oldTime, oldTime)
+const chatPet = createPet(ctx, normalizeConfig({ dataDir: tmpHome }))
+const wrote = await chatPet.noteAssistant('这段 grid 少了一列，右边那栏掉下去了。')
+const memAfter = JSON.parse(fs.readFileSync(petMem, 'utf8'))
+check('chat-note-appended', wrote === true && memAfter.main.main.messages.at(-1).content.includes('grid'), JSON.stringify(memAfter.main.main.messages.slice(-1)))
+check('chat-note-role', memAfter.main.main.messages.at(-1).role === 'assistant')
+const blocked = await chatPet.noteAssistant('紧接着又说一句')
+check('chat-note-skip-while-fresh', blocked === false, '刚写过记忆时让位给真对话')
+fs.utimesSync(petMem, oldTime, oldTime)
+const dup = await chatPet.noteAssistant('这段 grid 少了一列，右边那栏掉下去了。')
+check('chat-note-dedupe', dup === false, '同一句不重复写')
+check('chat-note-backup', fs.existsSync(`${petMem}.bak`), 'memory.json.bak')
+
+// 临时图保留窗口：默认 5 分钟，可以调成 0（立刻删）或更长。
+check('temp-keep-default', normalizeConfig({}).privacy.tempKeepSec === 300, String(normalizeConfig({}).privacy.tempKeepSec))
+check('temp-keep-zero', normalizeConfig({ privacy: { tempKeepSec: 0 } }).privacy.tempKeepSec === 0)
+check('temp-keep-clamped', normalizeConfig({ privacy: { tempKeepSec: 99999 } }).privacy.tempKeepSec === 3600)
+
 const failed = results.filter((r) => !r.ok)
 console.log(`\n${results.length - failed.length}/${results.length} passed`)
 server.close()
