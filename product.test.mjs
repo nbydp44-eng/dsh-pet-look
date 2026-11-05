@@ -94,7 +94,7 @@ check('night-quiet-off', canSpeak() === true)
 
 // —— 0.3.0：气泡长留、分析预算 ——
 const cfg = api.config
-check('bubble-default-long', cfg.bubble.durationMs === 600000 && cfg.bubble.clearOnSwitch === true, String(cfg.bubble.durationMs))
+check('bubble-default-long', cfg.bubble.durationMs === 3600000 && cfg.bubble.clearOnSwitch === true, String(cfg.bubble.durationMs))
 check('analysis-budget-default', cfg.vision.maxPerHour === 24 && cfg.vision.maxTokens >= 800)
 const budget = _internals.canAnalyze()
 check('can-analyze-baseline', budget === true)
@@ -127,6 +127,13 @@ check('settings-memory-off', st.memory.enabled === false)
 applySettings({ speak: { maxPerHour: 99, minGapSec: 1 }, intervals: { normal: 5 } })
 const st2 = settingsState()
 check('settings-clamped', st2.speak.maxPerHour === 3 && st2.speak.minGapSec === 900 && st2.intervals.normal === 30, JSON.stringify({ s: st2.speak, i: st2.intervals.normal }))
+
+// 气泡停留：可调但必须落在 1–60 分钟内
+applySettings({ bubble: { durationMs: 15 * 60000 } })
+check('bubble-setting-applied', settingsState().bubble.durationMs === 900000, String(settingsState().bubble.durationMs))
+applySettings({ bubble: { durationMs: 0 } })
+check('bubble-setting-clamped', settingsState().bubble.durationMs === 60000, String(settingsState().bubble.durationMs))
+applySettings({ bubble: { durationMs: 3600000 } })
 
 // —— 记忆：只收合规内容，可清空 ——
 check('memory-apply-ok', memory.apply({ key: 'task-1', text: '在写线性代数第三章的作业', status: 'active' }) === 'task-1')
@@ -199,7 +206,7 @@ check('guard-same-origin-ok', sameOrigin.code === 200, `code=${sameOrigin.code}`
 // 静止画面的定时兜底：默认 10 分钟看一次，且配置里能把它调到合理区间。
 const statusNow = await hit('GET', { host: '127.0.0.1:2577' }, '/dsh-pet-look/status')
 const cfgNow = JSON.parse(statusNow.body)
-check('heartbeat-default', cfgNow.bubble && cfgNow.bubble.durationMs === 600000, 'bubble=10min')
+check('heartbeat-default', cfgNow.bubble && cfgNow.bubble.durationMs === 3600000, 'bubble=60min')
 const withHb = normalizeConfig({ vision: { heartbeatSec: 5 } })
 check('heartbeat-clamped', withHb.vision.heartbeatSec === 120, `hb=${withHb.vision.heartbeatSec}`)
 

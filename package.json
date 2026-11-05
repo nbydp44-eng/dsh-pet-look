@@ -1,6 +1,6 @@
 {
   "name": "dsh-pet-look",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "DSH 桌宠的屏幕感知与主动交流插件：本地隐私门 + 主屏截图 + 视觉理解 + 可控主动发言",
   "type": "module",
   "main": "lib/index.js",
