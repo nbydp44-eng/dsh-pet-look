@@ -239,6 +239,12 @@ fs.utimesSync(petMem, oldTime, oldTime)
 const dup = await chatPet.noteAssistant('这段 grid 少了一列，右边那栏掉下去了。')
 check('chat-note-dedupe', dup === false, '同一句不重复写')
 check('chat-note-backup', fs.existsSync(`${petMem}.bak`), 'memory.json.bak')
+// 用户还没开口时连续说话：只保留最新一条，别把历史堆成独白。
+fs.utimesSync(petMem, oldTime, oldTime)
+const beforeLen = JSON.parse(fs.readFileSync(petMem, 'utf8')).main.main.messages.length
+const replaced = await chatPet.noteAssistant('画面换成浏览器里的接口文档了。')
+const afterMsgs = JSON.parse(fs.readFileSync(petMem, 'utf8')).main.main.messages
+check('chat-note-collapses-monologue', replaced === true && afterMsgs.length === beforeLen && afterMsgs.at(-1).content.includes('接口文档'), `len ${beforeLen}->${afterMsgs.length}`)
 
 // 临时图保留窗口：默认 5 分钟，可以调成 0（立刻删）或更长。
 check('temp-keep-default', normalizeConfig({}).privacy.tempKeepSec === 300, String(normalizeConfig({}).privacy.tempKeepSec))
